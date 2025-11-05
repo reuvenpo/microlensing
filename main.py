@@ -2,6 +2,7 @@ import stat
 import theory
 from plot import Plot
 from stat import chi_squared
+import photometry
 
 
 def main():
