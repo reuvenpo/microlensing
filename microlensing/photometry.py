@@ -14,6 +14,8 @@ class PhotDat:
     i_mag_err: NDFloatArray
     see_est: NDFloatArray
     sky_level: NDFloatArray
+    intensity: NDFloatArray
+    intensity_err: NDFloatArray
 
     @classmethod
     def from_file(cls, path: str) -> "PhotDat":
@@ -32,3 +34,7 @@ class PhotDat:
             print(f"File '{path}' not found.")
         except Exception as e:
             print(f"An error occurred: {e}")
+
+        #Convert Magnitude into Precentage Intensity - as per experiment instructions
+        intensity = np.exp(i_mag/(-2.5))
+        intensity_err = np.exp(I_mag_err/(-2.5))
