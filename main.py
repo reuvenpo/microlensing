@@ -10,9 +10,7 @@ from microlensing import photometry
 
 
 def main():
-    a = np.ones(shape=[200]*4, dtype=np.float16)
-    time.sleep(10)
-    print(a[0])
+    pass
 
 
 if __name__ == '__main__':
