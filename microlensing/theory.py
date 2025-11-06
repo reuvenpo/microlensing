@@ -1,7 +1,7 @@
 # This file should contain definitions of functions derived directly from our
 # theoretical framework
 
-from types import NDFloatArray
+from .types import NDFloatArray
 
 
 def u_at(t: NDFloatArray, u0: float, t0: float, tau: float) -> NDFloatArray:

@@ -3,7 +3,7 @@ from collections import abc
 
 import numpy as np
 
-from types import NDFloatArray
+from .types import NDFloatArray
 
 Prediction = abc.Callable[[NDFloatArray], NDFloatArray]
 
