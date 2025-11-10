@@ -60,3 +60,33 @@ def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray):
 def gauss(x, H, A, x0, sigma):
     return H + A * np.exp(-(x - x0)**2 / (2 * sigma**2))
 """End Part A"""
+
+"""Part B+C"""
+
+def search_chi_sqaure_min(x:NDFloatArray, y:NDFloatArray, sigma:NDFloatArray, search_parameters:NDFloatArray, func: callable, chi_limit, step_size=0.1):
+    """Limit search"""
+    limits = Limit_Search(chi_limit, func, search_parameters, sigma, step_size, x, y)
+
+    pass
+
+
+def Limit_Search(chi_limit, func, parameters: ndarray[tuple[Any, ...], dtype[float64]],
+                 sigma: ndarray[tuple[Any, ...], dtype[float64]], step_size: float,
+                 x: ndarray[tuple[Any, ...], dtype[float64]], y: ndarray[tuple[Any, ...], dtype[float64]]) -> NDFloatArray:
+    limits = np.array([])
+    for i in parameters.size:
+        chi = 0
+        param_search = parameters.copy()
+        while chi < chi_limit:
+            param_search[i] += step_size
+            chi = chi_squared(x, y, sigma, func(x, *parameters))
+        upperlim = param_search[i]
+        chi = 0
+        param_search = parameters.copy()
+        while chi < chi_limit:
+            param_search[i] -= step_size
+            chi = chi_squared(x, y, sigma, func(x, *parameters))
+        lowerlim = param_search[i]
+
+        limits = np.append(limits, [[lowerlim, upperlim]])
+    return limits
