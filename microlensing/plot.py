@@ -2,6 +2,7 @@ from warnings import catch_warnings, filterwarnings
 
 import numpy.polynomial as npp
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Plot:
@@ -29,6 +30,19 @@ class Plot:
         self.ax.plot(x, fit_y, style, label=label)
 
         return fit, fit_y
+
+    def plot_heatmap(self, label, x, y, z, z_label="z", num_levels=15, cmap_name="Heat Map"):
+        #Levels can be used to draw discreet levels based on chi2 confidence levels
+        levels = np.linspace(z.min(), z.max(), num_levels)
+        tricontour = self.ax.tricontourf(x, y, z, levels=levels, cmap=cmap_name)
+
+        figure = self.ax.figure
+        cbar = figure.colorbar(tricontour)
+        cbar.set_label('Z Value (Color Intensity)')
+
+        #plt.scatter(x, y, c='k', marker='.', s=10, label='Original Data Points')
+
+        return tricontour
 
     def save(self, output_file):
         with catch_warnings():
