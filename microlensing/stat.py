@@ -33,25 +33,29 @@ def point_chi_squared(x: float, y: float, sigma: float, f: Prediction_single) ->
 
 
 # Part A
-def parabola_fit(datapoints: NDFloatArray):
+def parabola_fit(x: NDFloatArray, y: NDFloatArray):
     """Uses numpy polynomial fit with the least squares for a polynomial of 3rd degree"""
-    datapoints = datapoints.transpose()
-    coef_array = Polynomial.fit(datapoints[0], datapoints[1], deg=2).convert().coef
+    coef_array = Polynomial.fit(x, y, deg=2).convert().coef
     return coef_array
 
 
 def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray):
     """Assuming 1000 samples of the coefficients"""
-    a_0 = np.zeros([10000])
-    a_1 = np.zeros([10000])
-    a_2 = np.zeros([10000])
-    datapoints: NDFloatArray = np.array([x, y]).transpose()
-    num_rows = datapoints.shape[0]
-    for i in range(10000):
+    if x.shape != y.shape:
+        raise ValueError(f"x.shape={x.shape} != y.shape={y.shape}")
+
+    N = 1000
+    a_0 = np.zeros(N)
+    a_1 = np.zeros(N)
+    a_2 = np.zeros(N)
+
+    num_rows = x.shape[0]
+    for i in range(N):
         sample_size = np.random.randint(low=6, high=num_rows)
         sample_indices = np.random.choice(num_rows, size=sample_size, replace=True)
-        sample = datapoints[sample_indices]
-        coef = parabola_fit(sample)
+        x_samp = x[sample_indices]
+        y_samp = y[sample_indices]
+        coef = parabola_fit(x_samp, y_samp)
         a_0[i] = coef[0]
         a_1[i] = coef[1]
         a_2[i] = coef[2]
