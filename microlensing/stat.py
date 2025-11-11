@@ -5,9 +5,12 @@ from collections import abc
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 from scipy.optimize import curve_fit
-from .types import NDFloatArray
+from .loc_types import NDFloatArray
+import utils
+import theory
 
 Prediction = abc.Callable[[NDFloatArray], NDFloatArray]
+Prediction_single = abc.Callable[[float], float]
 
 
 def chi_squared(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, f: Prediction) -> float:
@@ -19,74 +22,93 @@ def chi_squared(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, f: Predic
         ```
     """
     prediction = f(x)
-    chi_2 = np.sum(((y - prediction)/sigma)^2)
+    chi_2 = np.sum(((y - prediction)/sigma)**2)
+    return chi_2
+
+def point_chi_squared(x:float, y:float, sigma:float, f:Prediction_single) -> float:
+    prediction = f(x)
+    chi_2 = ((y-prediction)/sigma)**2
     return chi_2
 
 
-"""Part A"""
+#Part A
 def parabola_fit(datapoints: NDFloatArray):
     """Uses numpy polynomial fit with the least squares for a polynomial of 3rd degree"""
     datapoints = datapoints.transpose()
-    coef_array= Polynomial.fit(datapoints[0], datapoints[1],deg=3).convert().coef
+    coef_array= Polynomial.fit(datapoints[0], datapoints[1],deg=2).convert().coef
     return coef_array
 
 def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray):
     """Assuming 1000 samples of the coefficients"""
-    a_0 = np.array([])
-    a_1 = np.array([])
-    a_2 = np.array([])
-    datapoints = np.concatenate((x,y)).transpose()
-    for i in range(1000):
-        sample = np.random.Generator.choice(datapoints,
-                                            random.randrange(4,datapoints.size))
-        coef = parabola_fit(sample)
-        a_0 = np.append(a_0, coef[0])
-        a_1 = np.append(a_1, coef[1])
-        a_2 = np.append(a_2, coef[2])
+    a_0 = np.zeros([1000])
+    a_1 = np.zeros([1000])
+    a_2 = np.zeros([1000])
+    datapoints : NDFloatArray = np.concatenate((x,y)).transpose()
+    num_rows = datapoints.shape[0]
 
-    """Binning for fit"""
+    for i in range(1000):
+        sample_size = np.random.randint(low=4, high=num_rows)
+        sample_indices = np.random.choice(num_rows, size=sample_size, replace=True)
+        sample = datapoints[sample_indices]
+        coef = parabola_fit(sample)
+        a_0[i]= coef[0]
+        a_1[i]= coef[1]
+        a_2[i]= coef[2]
+
+    #Switching a_0 to u_0 using inverse function A_0 IS U_0 FROM THIS POINT FORWARD
+    a_0 = theory.extract_u0(a_0)
+    #Binning for fit
     a_0_hist = np.histogram(a_0,bins = 'auto')
     a_1_hist = np.histogram(a_1,bins = 'auto')
     a_2_hist = np.histogram(a_2,bins = 'auto')
-    """Fitting Gaussians for coefficients"""
+    #Fitting Gaussians for coefficients
     a_0_popt = curve_fit(gauss, xdata=a_0_hist[0], ydata=a_0_hist[1])
     a_1_popt = curve_fit(gauss, a_1_hist[0], a_1_hist[1])
     a_2_popt = curve_fit(gauss, a_2_hist[0], a_2_hist[1])
-    """By order - the returned array of curve_fit will have x_0 (center of the curve) at index 2,
-    and sigma of the curve at index 3"""
+    #By order - the returned array of curve_fit will have x_0 (center of the curve) at index 2,
+    #and sigma of the curve at index 3
     return a_0_popt[2], a_0_popt[3], a_1_popt[2], a_1_popt[3], a_2_popt[2], a_2_popt[3]
 
 
 def gauss(x, H, A, x0, sigma):
     return H + A * np.exp(-(x - x0)**2 / (2 * sigma**2))
-"""End Part A"""
+#End Part A
 
 """Part B+C"""
 
-def search_chi_sqaure_min(x:NDFloatArray, y:NDFloatArray, sigma:NDFloatArray, search_parameters:NDFloatArray, func: callable, chi_limit, step_size=0.1):
+def search_chi_sqaure_min(
+        x:NDFloatArray,
+        y:NDFloatArray,
+        sigma:NDFloatArray,
+        search_parameters:NDFloatArray,
+        func: Prediction_single,
+        chi_limit,
+        step_size=0.1,
+        resolution = 100
+):
     """Limit search"""
-    limits = Limit_Search(chi_limit, func, search_parameters, sigma, step_size, x, y)
-
+    limits = limit_search(chi_limit, func, search_parameters, sigma, step_size, x, y)
+    parameters_axis = utils.split_axis(limits, resolution)
     pass
 
 
-def Limit_Search(chi_limit, func, parameters: ndarray[tuple[Any, ...], dtype[float64]],
-                 sigma: ndarray[tuple[Any, ...], dtype[float64]], step_size: float,
-                 x: ndarray[tuple[Any, ...], dtype[float64]], y: ndarray[tuple[Any, ...], dtype[float64]]) -> NDFloatArray:
+def limit_search(chi_limit, func, parameters: NDFloatArray,
+                 sigma: NDFloatArray, dtypeNDFloatArray, step_size: float,
+                 x: NDFloatArray, y: NDFloatArray) -> NDFloatArray:
     limits = np.array([])
-    for i in parameters.size:
+    for index, value in np.ndenumerate(parameters):
         chi = 0
         param_search = parameters.copy()
         while chi < chi_limit:
-            param_search[i] += step_size
+            param_search[index] += step_size
             chi = chi_squared(x, y, sigma, func(x, *parameters))
-        upperlim = param_search[i]
+        upperLim = param_search[index]
         chi = 0
         param_search = parameters.copy()
         while chi < chi_limit:
-            param_search[i] -= step_size
+            param_search[index] -= step_size
             chi = chi_squared(x, y, sigma, func(x, *parameters))
-        lowerlim = param_search[i]
+        lowerLim = param_search[index]
 
-        limits = np.append(limits, [[lowerlim, upperlim]])
+        limits = np.append(limits, [[lowerLim, upperLim]])
     return limits

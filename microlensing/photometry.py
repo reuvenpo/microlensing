@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 from numpy import ndarray, dtype
 
-from .types import NDFloatArray
+from .loc_types import NDFloatArray
 
 
 @dataclass()
