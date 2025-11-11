@@ -58,27 +58,10 @@ def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray):
 
     # Switching a_0 to u_0 using inverse function A_0 IS U_0 FROM THIS POINT FORWARD
     # a_0 = theory.extract_u0(a_0)
-    # Binning for fit
-
-    a_0_values, a_0_bin_edges = np.histogram(a_0, bins='auto')
-    a_0_bin_centers = (a_0_bin_edges[:-1] + a_0_bin_edges[1:]) / 2
-    a_1_values, a_1_bin_edges = np.histogram(a_1, bins='auto')
-    a_1_bin_centers = (a_1_bin_edges[:-1] + a_1_bin_edges[1:]) / 2
-    a_2_values, a_2_bin_edges = np.histogram(a_2, bins='auto')
-    a_2_bin_centers = (a_2_bin_edges[:-1] + a_2_bin_edges[1:]) / 2
-    # Fitting Gaussians for coefficients
-    # p0 = [0, 1, a_0[0], 10]
-    a_0_popt = curve_fit(gauss, xdata=a_0_bin_centers, ydata=a_0_values, maxfev=5000)[0]
-    a_1_popt = curve_fit(gauss, xdata=a_1_bin_centers, ydata=a_1_values, maxfev=5000)[0]
-    a_2_popt = curve_fit(gauss, xdata=a_2_bin_centers, ydata=a_2_values, maxfev=5000)[0]
-    # By order - the returned array of curve_fit will have x_0 (center of the curve) at index 2,
-    # and sigma of the curve at index 3
-    return a_0_popt[2], a_0_popt[3], a_1_popt[2], a_1_popt[3], a_2_popt[2], a_2_popt[3]
-
-
-def gauss(x, H, A, x0, sigma):
-    return H + A * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
-
+    a_0_val, a_0_sigma = np.mean(a_0), np.std(a_0)
+    a_1_val, a_1_sigma = np.mean(a_1), np.std(a_1)
+    a_2_val, a_2_sigma = np.mean(a_2), np.std(a_2)
+    return a_0_val, a_0_sigma, a_1_val, a_1_sigma, a_2_val, a_2_sigma
 
 # End Part A
 
@@ -102,7 +85,7 @@ def search_chi_sqaure_min(
 
 
 def limit_search(chi_limit, func, parameters: NDFloatArray,
-                 sigma: NDFloatArray, dtypeNDFloatArray, step_size: float,
+                 sigma: NDFloatArray, step_size: float,
                  x: NDFloatArray, y: NDFloatArray) -> NDFloatArray:
     limits = np.array([])
     for index, value in np.ndenumerate(parameters):
