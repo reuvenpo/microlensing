@@ -39,10 +39,9 @@ class PhotDat:
             I_mag_err = I_mag_err / (-2.5)
             intensity = np.float_power(x1=tens, x2=I_mag) * i_0
             intensity_err = np.float_power(x1=tens, x2=I_mag_err) * i_0
-            cls(hjd,intensity, intensity_err, see_est, sky_level)
+            cls(hjd, intensity, intensity_err, see_est, sky_level)
 
         except FileNotFoundError:
             print(f"File '{path}' not found.")
         except Exception as e:
             print(f"An error occurred: {e}")
-
