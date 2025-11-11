@@ -1,6 +1,7 @@
 # This file is for miscellaneous functions that don't fit elsewhere
 import numpy as np
 
+
 def prepare_computation_blocks(*parameters):
     """This function uses `expand_dims` and `broadcast_arrays` to prepare
     for computing in a parameter subspace defined by the values
@@ -32,6 +33,6 @@ def prepare_computation_blocks(*parameters):
 
 def split_axis(limits, resolution):
     axis = np.array([])
-    for i,axis_limit in np.ndenumerate(limits):
-        np.append(axis, np.linspace(axis_limit[0],axis_limit[1],num=resolution))
+    for i, axis_limit in np.ndenumerate(limits):
+        np.append(axis, np.linspace(axis_limit[0], axis_limit[1], num=resolution))
     return axis
