@@ -48,19 +48,19 @@ def extract_u0(a_0: NDFloatArray) -> NDFloatArray:
     # u_0 close to infty indicating einstien ring.
 
     # expected - all values of a_0 > 0
-    if ~np.any(a_0 > 0):
-        return np.sqrt(2 * (1 - a_0 ** 2 + a_0 * np.sqrt(a_0 ** 2 - 1) / (a_0 ** 2 - 1)))
-    if ~np.any(a_0 < 0):
-        return -np.sqrt(2 * (1 - a_0 ** 2 - a_0 * np.sqrt(a_0 ** 2 - 1) / (a_0 ** 2 - 1)))
+    if np.all(a_0 > 0):
+        u=(2 * (1 - a_0 ** 2 + a_0 * (a_0 ** 2 - 1)**(1/2) )/ (a_0 ** 2 - 1))**(1/2)
+        return u
+    if np.any(a_0 < 0):
+        raise ValueError("detected negative a_0")
     if np.any(a_0 == 0):
-        raise Exception("Found Einstein Ring, a_0=0 -> u_0=infty")
+        raise ValueError("Found Einstein Ring, a_0=0 -> u_0=infty")
     else:
-        raise Exception("a_0 is not consistent in positivity, find another sample")
+        raise RuntimeError("something went wrong in extract_u0")
 
 
-def extract_tau(u0: float, sigma_u0: float, a2: float, sigma_a2):
+def extract_tau(u0: NDFloatArray, a2: NDFloatArray):
     tau2 = -8 / (a2 * (u0 ** 2) * ((u0 ** 2) + 4) ** (3 / 2))
     tau = (tau2) ** (1 / 2)
     # To add - sigma tau based on partial differentials
-    sigma_tau = 0
-    return tau, sigma_tau
+    return tau

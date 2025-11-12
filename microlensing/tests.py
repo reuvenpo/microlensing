@@ -18,7 +18,7 @@ def test_data():
 
     photometry = ph.PhotDat.from_file(file_path)
     # from Ogle - rewrite for specific file, I took an example from 2024
-    i_base = (10 ** (16.239 / (-2.5))) * 2635
+    i_base = ph.mag_to_i(16.239)
     u_0 = 0.252
     tau = 85.801
     t_0 = 2460440.283
@@ -30,12 +30,12 @@ def test_data():
     x = photometry.hjd[sample_indices]
     y = photometry.intensity[sample_indices]/i_base
 
-    a_0, a_0_sigma, a_1, a_1_sigma, a_2, a_2_sigma = (
+    u_0_val, u_0_sigma, tau_val, tau_sigma, a_1, a_1_sigma= (
         st.bootstrapping_parabola(x, y)
     )
-    u_0_measured = th.extract_u0(a_0)
-    tau_measured = th.extract_tau(u_0_measured,0,a_2,0)
-    print(u_0_measured, u_0, tau_measured, tau, a_1, a_1_sigma)
+    print(f"u_0: {u_0_val:.3} {u_0} tau: {tau_val:.3} {tau} a_1: {a_1:.3} {a_1_sigma:.3} {abs(100*a_1_sigma/a_1)}%")
 
-# test_bootstrap_parabola()
-test_data()
+
+if __name__ == '__main__':
+    # test_bootstrap_parabola()
+    test_data()
