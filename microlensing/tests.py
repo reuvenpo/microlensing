@@ -26,9 +26,9 @@ def test_data():
     photometry.hjd -= t_0
     #i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
     # A=4 as in my case, play with multiplier to get closer or further from peak
-    sample_indices = np.where(photometry.intensity > (i_base*1.5 ))
+    sample_indices = np.where(photometry.intensity > (i_base*2.5 ))
     x = photometry.hjd[sample_indices]
-    y = photometry.intensity[sample_indices]
+    y = photometry.intensity[sample_indices]/i_base
 
     a_0, a_0_sigma, a_1, a_1_sigma, a_2, a_2_sigma = (
         st.bootstrapping_parabola(x, y)
