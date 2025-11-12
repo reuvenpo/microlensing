@@ -3,6 +3,7 @@ import random
 from collections import abc
 
 import numpy as np
+from numpy.ma.core import shape
 from numpy.polynomial.polynomial import Polynomial
 from scipy.optimize import curve_fit
 from .loc_types import NDFloatArray
@@ -10,7 +11,7 @@ from . import utils
 from . import theory
 
 Prediction = abc.Callable[[NDFloatArray], NDFloatArray]
-Prediction_single = abc.Callable[[float], float]
+Prediction_single = abc.Callable[[float, NDFloatArray], NDFloatArray]
 
 
 def chi_squared(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, f: Prediction) -> float:
@@ -26,7 +27,14 @@ def chi_squared(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, f: Predic
     return chi_2
 
 
-def point_chi_squared(x: float, y: float, sigma: float, f: Prediction_single) -> float:
+def chi_squared_aggregate(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, f: Prediction) -> float:
+    """Compute the chi squared of the data in `y`, `x`, `sigma` given the model `f`
+
+    Example:
+        ```
+        chi_squared(x, y, sigma, lambda x: a*x + b)
+        ```
+    """
     prediction = f(x)
     chi_2 = ((y - prediction) / sigma) ** 2
     return chi_2
@@ -80,34 +88,49 @@ def search_chi_sqaure_min(
         y: NDFloatArray,
         sigma: NDFloatArray,
         search_parameters: NDFloatArray,
+        static_params: NDFloatArray,
         func: Prediction_single,
         chi_limit,
         step_size=0.1,
         resolution=100
 ):
     """Limit search"""
-    limits = limit_search(chi_limit, func, search_parameters, sigma, step_size, x, y)
+    limits = limit_search(chi_limit, func, search_parameters, static_params, sigma, step_size, x, y)
     parameters_axis = utils.split_axis(limits, resolution)
-    pass
+    #meshgrids = utils.prepare_computation_blocks(parameters_axis)
+    meshgrid = np.meshgrid(*parameters_axis, indexing='ij', sparse=True)
+    chi2 = np.zeros(shape=(resolution,)*search_parameters.shape[0])
+    for i in range(x.shape[0]):
+        t = x[i]
+        val = y[i]
+        sig = sigma[i]
+        # expecting func to have signature of f(x,a_0,...,a_n, c_0,...,c_n)
+        # where a_0 are searched parameters and c are constants not to be searched
+        f = lambda x_i: func(x_i, *meshgrid,*static_params)
+        chi2 += chi_squared_aggregate(t, val,sig, f)
+    if search_parameters.shape[0] == 2:
+        # plot heat map of chi2 based on search params
+        pass
+    return chi2, np.argmin(chi2), meshgrid
 
 
-def limit_search(chi_limit, func, parameters: NDFloatArray,
+def limit_search(chi_limit, func, parameters: NDFloatArray, static_params: NDFloatArray,
                  sigma: NDFloatArray, step_size: float,
                  x: NDFloatArray, y: NDFloatArray) -> NDFloatArray:
-    limits = np.array([])
+    limits = np.zeros(shape=(parameters.shape[0], 2))
     for index, value in np.ndenumerate(parameters):
         chi = 0
         param_search = parameters.copy()
         while chi < chi_limit:
             param_search[index] += step_size
-            chi = chi_squared(x, y, sigma, func(x, *parameters))
+            chi = chi_squared(x, y, sigma, lambda t: func(t, *param_search, *static_params))
         upperLim = param_search[index]
         chi = 0
         param_search = parameters.copy()
         while chi < chi_limit:
             param_search[index] -= step_size
-            chi = chi_squared(x, y, sigma, func(x, *parameters))
+            chi = chi_squared(x, y, sigma, lambda t: func(t, *param_search, *static_params))
         lowerLim = param_search[index]
 
-        limits = np.append(limits, [[lowerLim, upperLim]])
+        limits[index] = np.array([[lowerLim, upperLim]])
     return limits

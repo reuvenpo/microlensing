@@ -5,16 +5,22 @@ from .loc_types import NDFloatArray
 import numpy as np
 
 
-def u_at(t: NDFloatArray, u0: float, t0: float, tau: float) -> NDFloatArray:
+def u_at(t: NDFloatArray, u0: float, tau: float, t0: float) -> NDFloatArray:
     """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
     u = (((t - t0) / tau) ** 2 + u0 ** 2) ** (1 / 2)
     return u
 
 
-def u_at_single(t: float, u0: NDFloatArray, t0: NDFloatArray, tau: NDFloatArray) -> NDFloatArray:
+def u_at_single(t: float, u0: NDFloatArray, tau: NDFloatArray, t0: NDFloatArray) -> NDFloatArray:
     """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
     u = (((t - t0) / tau) ** 2 + u0 ** 2) ** (1 / 2)
     return u
+
+
+def full_fit(t: float, u0: NDFloatArray, tau: NDFloatArray, f_bl: NDFloatArray, t0: NDFloatArray) -> NDFloatArray:
+    u = u_at_single(t, u0, tau, t0)
+    i_t = (u - 1) * f_bl + 1
+    return i_t
 
 
 def magnification_with_blending(
@@ -49,7 +55,7 @@ def extract_u0(a_0: NDFloatArray) -> NDFloatArray:
 
     # expected - all values of a_0 > 0
     if np.all(a_0 > 0):
-        u=(2 * (1 - a_0 ** 2 + a_0 * (a_0 ** 2 - 1)**(1/2) )/ (a_0 ** 2 - 1))**(1/2)
+        u = (2 * (1 - a_0 ** 2 + a_0 * (a_0 ** 2 - 1) ** (1 / 2)) / (a_0 ** 2 - 1)) ** (1 / 2)
         return u
     if np.any(a_0 < 0):
         raise ValueError("detected negative a_0")

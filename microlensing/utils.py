@@ -32,7 +32,8 @@ def prepare_computation_blocks(*parameters):
 
 
 def split_axis(limits, resolution):
-    axis = np.array([])
-    for i, axis_limit in np.ndenumerate(limits):
-        np.append(axis, np.linspace(axis_limit[0], axis_limit[1], num=resolution))
+    axis = np.zeros(shape=(limits.shape[0], resolution))
+    for i in range(limits.shape[0]):
+        axis_limit = limits[i]
+        axis[i] = np.linspace(axis_limit[0], axis_limit[1], num=resolution)
     return axis

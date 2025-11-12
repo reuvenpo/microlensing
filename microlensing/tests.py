@@ -36,6 +36,20 @@ def test_data():
     print(f"u_0: {u_0_val:.3} {u_0} tau: {tau_val:.3} {tau} a_1: {a_1:.3} {a_1_sigma:.3} {abs(100*a_1_sigma/a_1)}%")
 
 
+def test_chi2():
+    x = np.arange(-10, 10, 0.5)
+    mu, sigma = 0, 1  # mean and standard deviation
+    rng = np.random.default_rng()
+    s = rng.normal(mu, sigma, 40)
+    y = 4 * x ** 2 - 9 * x + 3 + s
+    f = lambda x,a0,a1,a2: a0 + a1*x + a2*x**2
+    sigma_array = np.full(40, 0.1)
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x,y,sigma_array,np.array([4,-9,3]),[],f,3,0.1,10)
+    index = np.array(np.unravel_index(np.argmin(chi2),chi2.shape))
+    print (f"chimin:{chi_min}, index:{index}")
+    print(f"a_0:{axis[0,index[0],0,0]}, a_1:{axis[1,0,index[1],0]}, a_2:{axis[2,0,0,index[2]]}")
+
 if __name__ == '__main__':
-    # test_bootstrap_parabola()
-    test_data()
+    #test_bootstrap_parabola()
+    #test_data()
+    test_chi2()
