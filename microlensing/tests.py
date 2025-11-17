@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 from microlensing import stat as st
 from microlensing import utils
 from microlensing import theory
@@ -36,6 +37,38 @@ def test_data(file_path, i_mag_base, u_0, tau, t_0):
         f"tau: {tau_val:.3} {tau:.3}\n"
         f"a_1: {a_1:.3} {a_1_sigma:.3} {abs(a_1_sigma / a_1):.2%}%"
     )
+
+
+def test_find_peaks(file_path):
+    photometry = ph.PhotDat.from_file(file_path)
+
+    SHOW = (None, None)
+    peaks, props = scipy.signal.find_peaks(photometry.intensity, width=SHOW, height=SHOW, prominence=SHOW)
+    # print(peaks)
+    # print(props)
+    max_peak_index = np.argmax(props["peak_heights"])
+    peak_index = peaks[max_peak_index]
+    left_base_index = props["left_bases"][max_peak_index]
+    right_base_index = props["right_bases"][max_peak_index]
+    left_width_index = int(np.floor(props["left_ips"][max_peak_index]))
+    right_width_index = int(np.ceil(props["right_ips"][max_peak_index]))
+    print(left_width_index, right_width_index)
+
+    time = photometry.hjd[left_base_index:right_base_index]
+    intensity = photometry.intensity[left_base_index:right_base_index]
+    pb_time = photometry.hjd[left_width_index:right_width_index]
+    pb_intensity = photometry.intensity[left_width_index:right_width_index]
+
+    pl = plot.Plot("intensity over time", "time", "intensity")
+    pl.plot("data", time, intensity)
+    pl.plot("peak", photometry.hjd[peak_index], photometry.intensity[peak_index], style="X")
+    pl.plot("left base", photometry.hjd[left_base_index], photometry.intensity[left_base_index], style="X")
+    pl.plot("right base", photometry.hjd[right_base_index], photometry.intensity[right_base_index], style="X")
+    pl.plot("left width", photometry.hjd[left_width_index], photometry.intensity[left_width_index], style="X")
+    pl.plot("right width", photometry.hjd[right_width_index], photometry.intensity[right_width_index], style="X")
+    pl.plot_polyfit("parabolic fit", pb_time, pb_intensity, degree=2)
+    pl.ax.legend()
+    pl.save("../output/test_find_peaks.png")
 
 
 def test_chi2():
@@ -171,6 +204,7 @@ if __name__ == '__main__':
 
     # test_bootstrap_parabola()
     test_data(ogle_2024_blg_170, 16.239, 0.252, 85.801, 2460440.283)
+    # test_find_peaks(ogle_2024_blg_170)
     # test_chi2_2d()
     # test_part_b(ogle_2024_blg_170)
     # test_part_c(ogle_2024_blg_170)
