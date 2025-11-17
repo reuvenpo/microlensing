@@ -5,20 +5,27 @@ from .loc_types import NDFloatArray
 import numpy as np
 
 
+def total_magnification(t: float, u0: NDFloatArray, t0: NDFloatArray, tau: NDFloatArray) -> NDFloatArray:
+    """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
+    u = u_at_single(t, u0, t0, tau)
+    a = ((u ** 2) + 2) / (u * (((u ** 2) + 4) ** (1 / 2)))
+    return a
+
+
 def u_at(t: NDFloatArray, u0: float, tau: float, t0: float) -> NDFloatArray:
     """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
-    u = (((t - t0) / tau) ** 2 + u0 ** 2) ** (1 / 2)
+    u = ((((t - t0) / tau) ** 2) + u0 ** 2) ** (1 / 2)
     return u
 
 
-def u_at_single(t: float, u0: NDFloatArray, tau: NDFloatArray, t0: NDFloatArray) -> NDFloatArray:
+def u_at_single(t: float, u0: NDFloatArray, t0: NDFloatArray, tau: NDFloatArray) -> NDFloatArray:
     """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
-    u = (((t - t0) / tau) ** 2 + u0 ** 2) ** (1 / 2)
+    u = ((((t - t0) / tau) ** 2) + u0 ** 2) ** (1 / 2)
     return u
 
 
 def full_fit(t: float, u0: NDFloatArray, tau: NDFloatArray, f_bl: NDFloatArray, t0: NDFloatArray) -> NDFloatArray:
-    u = u_at_single(t, u0, tau, t0)
+    u = u_at_single(t, u0, t0, tau)
     i_t = (u - 1) * f_bl + 1
     return i_t
 

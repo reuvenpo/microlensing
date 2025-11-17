@@ -1,9 +1,10 @@
 import numpy as np
 from microlensing import stat as st
-from microlensing import utils as ut
-from microlensing import theory as th
+from microlensing import utils
+from microlensing import theory
 from microlensing import photometry as ph
-from microlensing import plot as p
+from microlensing import plot
+
 
 def test_bootstrap_parabola():
     x = np.arange(-10, 10, 0.5)
@@ -13,27 +14,30 @@ def test_bootstrap_parabola():
     y = 4 * x ** 2 - 9 * x + 3 + s
     print(st.bootstrapping_parabola(x, y))
 
-file_path = "./phot - 2024 - BLG - 170 .txt"
-def test_data():
 
+file_path = "./phot - 2024 - BLG - 170 .txt"
+
+
+def test_data():
     photometry = ph.PhotDat.from_file(file_path)
     # from Ogle - rewrite for specific file, I took an example from 2024
     i_base = ph.mag_to_i(16.239)
     u_0 = 0.252
     tau = 85.801
     t_0 = 2460440.283
-    #Centering function
+    # Centering function
     photometry.hjd -= t_0
-    #i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
+    # i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
     # A=4 as in my case, play with multiplier to get closer or further from peak
-    sample_indices = np.where(photometry.intensity > (i_base*2.5 ))
+    sample_indices = np.where(photometry.intensity > (i_base * 2.5))
     x = photometry.hjd[sample_indices]
-    y = photometry.intensity[sample_indices]/i_base
+    y = photometry.intensity[sample_indices] / i_base
 
-    u_0_val, u_0_sigma, tau_val, tau_sigma, a_1, a_1_sigma= (
+    u_0_val, u_0_sigma, tau_val, tau_sigma, a_1, a_1_sigma = (
         st.bootstrapping_parabola(x, y)
     )
-    print(f"u_0: {u_0_val:.3} {u_0} tau: {tau_val:.3} {tau} a_1: {a_1:.3} {a_1_sigma:.3} {abs(100*a_1_sigma/a_1)}%")
+    print(
+        f"u_0: {u_0_val:.3} + {u_0_sigma:.3}; {u_0} tau: {tau_val:.3} {tau} a_1: {a_1:.3} {a_1_sigma:.3} {abs(100 * a_1_sigma / a_1)}%")
 
 
 def test_chi2():
@@ -42,14 +46,132 @@ def test_chi2():
     rng = np.random.default_rng()
     s = rng.normal(mu, sigma, 40)
     y = 4 * x ** 2 - 9 * x + 3 + s
-    f = lambda x,a0,a1,a2: a0 + a1*x + a2*x**2
+    f = lambda x, a0, a1, a2: a0 + a1 * x + a2 * x ** 2
     sigma_array = np.full(40, 0.1)
-    chi2, chi_min, axis = st.search_chi_sqaure_min(x,y,sigma_array,np.array([4,-9,3]),[],f,3,0.1,10)
-    index = np.array(np.unravel_index(np.argmin(chi2),chi2.shape))
-    print (f"chimin:{chi_min}, index:{index}")
-    print(f"a_0:{axis[0,index[0],0,0]}, a_1:{axis[1,0,index[1],0]}, a_2:{axis[2,0,0,index[2]]}")
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma_array, np.array([4, -9, 3]), [], f, 3, 0.1, 10)
+    index = np.array(np.unravel_index(np.argmin(chi2), chi2.shape))
+    print(f"chimin:{chi_min}, index:{index}")
+    print(f"a_0:{axis[0][index[0], 0, 0]}, a_1:{axis[1][0, index[1], 0]}, a_2:{axis[2][0, 0, index[2]]}")
+
+
+def test_chi2_2d():
+    x = np.arange(-10, 10, 0.5)
+    mu, sigma = 0, 0.1  # mean and standard deviation
+    rng = np.random.default_rng()
+    s = rng.normal(mu, sigma, 40)
+    y = 9 * x + 3 + s
+    f = lambda x, a0, a1: a0 + a1 * x
+    sigma_array = np.full(40, 0.)
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma_array, np.array([3, 9]), [], f, 3, 0.1, 10)
+    index = np.array(np.unravel_index(np.argmin(chi2), chi2.shape))
+
+    p = plot.Plot(title="heatmap", x_label="a_0", y_label="a_1")
+    p.plot_heatmap(x=axis[0], y=axis[1], z=chi2, z_label="chi^2", x_min=axis[0][index[0], 0],
+                   y_min=axis[1][0, index[1]], z_min=chi_min)
+    p.save("../output/shdfgjsgj")
+    print(f"chimin:{chi_min}, index:{index}")
+    print(f"a_0:{axis[0][index[0], 0]}, a_1:{axis[1][0, index[1]]}")
+
+
+def test_part_b():
+    photometry = ph.PhotDat.from_file(file_path)
+    # from Ogle - rewrite for specific file, I took an example from 2024
+    i_base = ph.mag_to_i(16.239)
+    u_0 = 0.252
+    tau = 85.801
+    t_0 = 2460440.283
+    sigma = photometry.intensity_err
+    # Centering function
+    # i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
+    # A=4 as in my case, play with multiplier to get closer or further from peak
+    # sample_indices = np.where(photometry.intensity > (i_base * 2.5))
+    x = photometry.hjd
+    y = photometry.intensity / i_base
+    # define search func
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, t_0]), [tau], theory.total_magnification,
+                                                   100, 0,
+                                                   100)
+    index = np.where(chi2 == chi_min)
+
+    p = plot.Plot(title="heatmap", x_label="a_0", y_label="a_1")
+    p.plot_heatmap(x=axis[0], y=axis[1], z=chi2, z_label="chi^2", x_min=axis[0][index[0], 0],
+                   y_min=axis[1][0, index[1]], z_min=chi_min, num_levels=15)
+    p.save("../output/shdfgjsgj")
+    print(f"chimin:{chi_min}, index:{index}")
+    print(f"u_0:{axis[0][index[0], 0]}, , t_0:{axis[1][0, index[1]]}; u_0,t_0 theo = {u_0:.3} {t_0:.3}")
+
+
+def test_part_c():
+    photometry = ph.PhotDat.from_file(file_path)
+    # from Ogle - rewrite for specific file, I took an example from 2024
+    i_base = ph.mag_to_i(16.239)
+    u_0 = 0.252
+    tau = 85.801
+    t_0 = 2460440.283
+    sigma = photometry.intensity_err / i_base
+    # Centering function
+    # i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
+    # A=4 as in my case, play with multiplier to get closer or further from peak
+    # sample_indices = np.where(photometry.intensity > (i_base * 2.5))
+    x = photometry.hjd
+    y = photometry.intensity / i_base
+    # define search func
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, t_0, tau]), [], theory.u_at_single, 100,
+                                                   0, 100)
+    index = np.where(chi2 == chi_min)
+
+    print(f"chimin:{chi_min}, index:{index}")
+    print(
+        f"u_0:{axis[0][index[0], 0]}, , t_0:{axis[1][0, index[1]]}, tau:{axis[2][0, 0, index[2]]}; u_0,t_0 theo = {u_0:.3} {t_0:.3}")
+
+
+def test_part_b1():
+    file = "../Data/blending-1/OGLE-2023-BLG-0096.csv"
+    photometry = ph.PhotDat.from_file(file)
+    # from Ogle - rewrite for specific file, I took an example from 2024
+    i_base = ph.mag_to_i(16.781)
+    u_0 = 0.440
+    tau = 108
+    t_0 = 2460122.725
+    sigma = photometry.intensity_err
+    # Centering function
+    # i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
+    # A=4 as in my case, play with multiplier to get closer or further from peak
+    # sample_indices = np.where(photometry.intensity > (i_base * 2.5))
+    x = photometry.hjd-t_0+100
+    y = photometry.intensity/i_base
+    # define search func
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, 100]), [tau], theory.total_magnification,
+                                                   30, 0,
+                                                   100)
+    index = np.where(chi2 == chi_min)
+
+    p = plot.Plot(title="heatmap", x_label="a_0", y_label="a_1")
+    # p.plot_func(
+    #     label="Visual Diff",
+    #     x=x,
+    #     y=y,
+    #     sigma=sigma,
+    #     func=lambda t: theory.total_magnification(t, u_0, 100, tau))
+    # p.plot_func(
+    #     label="Visual Diff",
+    #     x=x,
+    #     y=y,
+    #     sigma=sigma,
+    #     func=lambda t: theory.total_magnification(t, axis[0][index[0], 0][0], axis[1][0, index[1]][0], tau))
+    # axis[0][index[0], 0][0], axis[1][0, index[1]][0], t_0))
+    p.plot_heatmap(x=axis[0], y=axis[1], z=chi2.transpose(), z_label="chi^2", x_min=index[0],
+                   y_min=index[1], z_min=chi_min)
+    p.save("../output/shdfgjsgj")
+    print(f"chimin:{chi_min}, index:{index}")
+    print(f"chi at index:{chi2[index]}")
+    print(f"u_0:{axis[0][index[0], 0]}, , t_0:{axis[1][0, index[1]]}; u_0,t_0 theo = {u_0:.3} {t_0:.3}")
+
 
 if __name__ == '__main__':
-    #test_bootstrap_parabola()
-    #test_data()
-    test_chi2()
+    # test_bootstrap_parabola()
+    # test_data()
+    # test_chi2_2d()
+    # test_part_b()
+    # test_part_c()
+    test_part_b1()

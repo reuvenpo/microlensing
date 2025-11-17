@@ -40,8 +40,14 @@ class PhotDat:
             sky_level = df[..., 4]
 
             intensity = mag_to_i(I_mag)
-            intensity_err = mag_to_i(I_mag_err)
+            intensity_err = 100*(mag_to_i(I_mag+I_mag_err) + mag_to_i(I_mag-I_mag_err))/2
 
+            # Various attempts of intensity error calculations down here.
+
+            # intensity_err = (mag_to_i(I_mag+I_mag*I_mag_err) + mag_to_i(I_mag-I_mag*I_mag_err))/2
+            # Incorrect
+            # intensity_err = 10000 * intensity * I_mag_err * np.log(10) / 2.5
+            # intensity_err = mag_to_i(I_mag_err)
             return cls(hjd, intensity, intensity_err, see_est, sky_level)
 
         except FileNotFoundError:
