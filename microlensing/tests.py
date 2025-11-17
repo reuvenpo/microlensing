@@ -54,10 +54,10 @@ def test_find_peaks(file_path):
     right_width_index = int(np.ceil(props["right_ips"][max_peak_index]))
     print(left_width_index, right_width_index)
 
-    time = photometry.hjd[left_base_index:right_base_index]
-    intensity = photometry.intensity[left_base_index:right_base_index]
-    pb_time = photometry.hjd[left_width_index:right_width_index]
-    pb_intensity = photometry.intensity[left_width_index:right_width_index]
+    time = photometry.hjd[left_base_index:right_base_index+1]
+    intensity = photometry.intensity[left_base_index:right_base_index+1]
+    pb_time = photometry.hjd[left_width_index:right_width_index+1]
+    pb_intensity = photometry.intensity[left_width_index:right_width_index+1]
 
     pl = plot.Plot("intensity over time", "time", "intensity")
     pl.plot("data", time, intensity)
