@@ -48,20 +48,21 @@ def parabola_fit(x: NDFloatArray, y: NDFloatArray):
     return coef_array
 
 
-def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray):
+def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray, iterations: int = 1000, min_sample: int = 6):
     """Assuming 1000 samples of the coefficients"""
     if x.shape != y.shape:
         raise ValueError(f"x.shape={x.shape} != y.shape={y.shape}")
 
-    N = 1000
-    a_0 = np.zeros(N)
-    a_1 = np.zeros(N)
-    a_2 = np.zeros(N)
+    # Assuming a parabola of the form
+    # a_0 + a_1 * x + a_2 * x**2
+    a_0 = np.zeros(iterations)
+    a_1 = np.zeros(iterations)
+    a_2 = np.zeros(iterations)
 
-    num_rows = x.shape[0]
-    for i in range(N):
-        sample_size = np.random.randint(low=6, high=num_rows)
-        sample_indices = np.random.choice(num_rows, size=sample_size, replace=True)
+    num_rows = x.size
+    for i in range(iterations):
+        sample_size = np.random.randint(low=min_sample, high=num_rows)
+        sample_indices = np.random.choice(num_rows, size=sample_size, replace=False)
         x_samp = x[sample_indices]
         y_samp = y[sample_indices]
         coef = parabola_fit(x_samp, y_samp)

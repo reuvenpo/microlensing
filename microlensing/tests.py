@@ -15,16 +15,11 @@ def test_bootstrap_parabola():
     print(st.bootstrapping_parabola(x, y))
 
 
-file_path = "./phot - 2024 - BLG - 170 .txt"
-
-
-def test_data():
+def test_data(file_path, i_mag_base, u_0, tau, t_0):
     photometry = ph.PhotDat.from_file(file_path)
     # from Ogle - rewrite for specific file, I took an example from 2024
-    i_base = ph.mag_to_i(16.239)
-    u_0 = 0.252
-    tau = 85.801
-    t_0 = 2460440.283
+    i_base = ph.mag_to_i(i_mag_base)
+
     # Centering function
     photometry.hjd -= t_0
     # i_base is taken from OGLE estimation, took a 1.5 multiplier as it works well when
@@ -37,7 +32,10 @@ def test_data():
         st.bootstrapping_parabola(x, y)
     )
     print(
-        f"u_0: {u_0_val:.3} + {u_0_sigma:.3}; {u_0} tau: {tau_val:.3} {tau} a_1: {a_1:.3} {a_1_sigma:.3} {abs(100 * a_1_sigma / a_1)}%")
+        f"u_0: {u_0_val:.3} + {u_0_sigma:.3}; {u_0}\n"
+        f"tau: {tau_val:.3} {tau:.3}\n"
+        f"a_1: {a_1:.3} {a_1_sigma:.3} {abs(a_1_sigma / a_1):.2%}%"
+    )
 
 
 def test_chi2():
@@ -73,7 +71,7 @@ def test_chi2_2d():
     print(f"a_0:{axis[0][index[0], 0]}, a_1:{axis[1][0, index[1]]}")
 
 
-def test_part_b():
+def test_part_b(file_path):
     photometry = ph.PhotDat.from_file(file_path)
     # from Ogle - rewrite for specific file, I took an example from 2024
     i_base = ph.mag_to_i(16.239)
@@ -101,7 +99,7 @@ def test_part_b():
     print(f"u_0:{axis[0][index[0], 0]}, , t_0:{axis[1][0, index[1]]}; u_0,t_0 theo = {u_0:.3} {t_0:.3}")
 
 
-def test_part_c():
+def test_part_c(file_path):
     photometry = ph.PhotDat.from_file(file_path)
     # from Ogle - rewrite for specific file, I took an example from 2024
     i_base = ph.mag_to_i(16.239)
@@ -169,9 +167,11 @@ def test_part_b1():
 
 
 if __name__ == '__main__':
+    ogle_2024_blg_170 = "../data/blending-1/OGLE-2024-BLG-0170.csv"
+
     # test_bootstrap_parabola()
-    # test_data()
+    test_data(ogle_2024_blg_170, 16.239, 0.252, 85.801, 2460440.283)
     # test_chi2_2d()
-    # test_part_b()
-    # test_part_c()
-    test_part_b1()
+    # test_part_b(ogle_2024_blg_170)
+    # test_part_c(ogle_2024_blg_170)
+    # test_part_b1()
