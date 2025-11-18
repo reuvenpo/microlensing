@@ -156,8 +156,7 @@ def test_part_c(file_path):
         f"u_0:{axis[0][index[0], 0]}, , t_0:{axis[1][0, index[1]]}, tau:{axis[2][0, 0, index[2]]}; u_0,t_0 theo = {u_0:.3} {t_0:.3}")
 
 
-def test_part_b1():
-    file = "../Data/blending-1/OGLE-2023-BLG-0096.csv"
+def test_part_b1(file):
     photometry = ph.PhotDat.from_file(file)
     # from Ogle - rewrite for specific file, I took an example from 2024
     i_base = ph.mag_to_i(16.781)
@@ -208,4 +207,4 @@ if __name__ == '__main__':
     # test_chi2_2d()
     # test_part_b(ogle_2024_blg_170)
     # test_part_c(ogle_2024_blg_170)
-    # test_part_b1()
+    # test_part_b1(ogle_2024_blg_170)
