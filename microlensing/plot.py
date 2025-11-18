@@ -38,14 +38,26 @@ class Plot:
         self.ax.errorbar(x=x, y=y, yerr=sigma, marker='o', linestyle='None')
         self.ax.plot(x, fit_y, style, label=label)
 
+    # The chi squared difference as a function of confidence level and degrees of freedom.
+    # Values are given for 68.3%, 90%, 95.4%, 99%, 99.73%, and 99.99%
+    CHI2_DIFF_CONF_DOF = np.array([
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00], # filler
+        [1.00, 2.71, 4.00, 6.63, 9.00, 15.1], # 1 DoF
+        [2.30, 4.61, 6.17, 9.21, 11.8, 18.4], # 2 DoF
+        [3.53, 6.25, 8.02, 11.3, 14.2, 21.1], # 3 DoF
+        [4.72, 7.78, 9.70, 13.3, 16.3, 23.5], # 4 DoF
+        [5.89, 9.24, 11.3, 15.1, 18.2, 25.7], # 5 DoF
+        [7.04, 11.6, 12.8, 16.8, 20.1, 27.8], # 6 DoF
+    ])
+
     def plot_heatmap(self, x, y, z, z_label="z", num_levels=15, x_min=None, y_min=None, z_min=None):
         # Levels can be used to draw discreet levels based on chi2 confidence levels
         # levels = np.linspace(z.min(), z.max(), num_levels)
         X, Y = np.meshgrid(x, y)
         min = np.min(z)
-        levels = [min, min + 2.3, min + 4.61, min + 6.17, min + 9.21, min + 11.8, min + 18.4]
+        levels = self.CHI2_DIFF_CONF_DOF[2] + min
         filled_contours = self.ax.contourf(X, Y, z, levels=levels)
-        # custom_norm = colors.Normalize(vmin=min, vmax=min+18.4)
+        # custom_norm = colors.Normalize(vmin=min, vmax=min+self.CHI2_DIFF_CONF_DOF[2][-1])
         # self.ax.pcolormesh(z, norm=custom_norm)
         self.fig.colorbar(filled_contours, ax=self.ax, label=z_label)
         # cbar =
