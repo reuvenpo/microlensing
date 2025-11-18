@@ -43,7 +43,7 @@ def test_find_peaks(file_path):
     photometry = ph.PhotDat.from_file(file_path)
 
     SHOW = (None, None)
-    peaks, props = scipy.signal.find_peaks(photometry.intensity, width=SHOW, height=SHOW, prominence=SHOW)
+    peaks, props = scipy.signal.find_peaks(photometry.intensity, rel_height=1/3, width=SHOW, height=SHOW, prominence=SHOW)
     # print(peaks)
     # print(props)
     max_peak_index = np.argmax(props["peak_heights"])
