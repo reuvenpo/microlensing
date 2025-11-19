@@ -87,20 +87,11 @@ def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray, iterations: int = 1
 """Part B+C"""
 
 
-def search_chi_sqaure_min(
-        x: NDFloatArray,
-        y: NDFloatArray,
-        sigma: NDFloatArray,
-        search_parameters: NDFloatArray,
-        static_params: List[float],
-        func: Prediction_single,
-        chi_limit,
-        step_size=0.1,
-        resolution=100
-):
+def search_chi_sqaure_min(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, search_parameters: NDFloatArray,
+                          static_params: List[float], func: Prediction_single, resolution=100):
     """Limit search"""
     dof = (x.size - search_parameters.size)
-    limits = limit_search(chi_limit, func, search_parameters, static_params, sigma, dof, x, y)
+    limits = limit_search(func, search_parameters, static_params, sigma, dof, x, y)
     axis = utils.split_axis(limits, resolution)
     # axis = np.zeros(shape=(search_parameters.shape[0], resolution))
     # for i in range(search_parameters.shape[0]):
@@ -121,7 +112,7 @@ def search_chi_sqaure_min(
     return chi2, np.min(chi2), meshgrid
 
 
-def limit_search(chi_limit, func, parameters: NDFloatArray, static_params: NDFloatArray,
+def limit_search(func, parameters: NDFloatArray, static_params: NDFloatArray,
                  sigma: NDFloatArray, dof: float,
                  x: NDFloatArray, y: NDFloatArray) -> NDFloatArray:
     limits = np.zeros(shape=(parameters.shape[0], 2))

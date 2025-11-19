@@ -79,7 +79,7 @@ def test_chi2():
     y = 4 * x ** 2 - 9 * x + 3 + s
     f = lambda x, a0, a1, a2: a0 + a1 * x + a2 * x ** 2
     sigma_array = np.full(40, 0.1)
-    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma_array, np.array([4, -9, 3]), [], f, 3, 0.1, 10)
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma_array, np.array([4, -9, 3]), [], f, 10)
     index = np.array(np.unravel_index(np.argmin(chi2), chi2.shape))
     print(f"chimin:{chi_min}, index:{index}")
     print(f"a_0:{axis[0][index[0], 0, 0]}, a_1:{axis[1][0, index[1], 0]}, a_2:{axis[2][0, 0, index[2]]}")
@@ -93,7 +93,7 @@ def test_chi2_2d():
     y = 9 * x + 3 + s
     f = lambda x, a0, a1: a0 + a1 * x
     sigma_array = np.full(40, 0.)
-    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma_array, np.array([3, 9]), [], f, 3, 0.1, 10)
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma_array, np.array([3, 9]), [], f, 10)
     index = np.array(np.unravel_index(np.argmin(chi2), chi2.shape))
 
     p = plot.Plot(title="heatmap", x_label="a_0", y_label="a_1")
@@ -120,7 +120,6 @@ def test_part_b(file_path):
     y = photometry.intensity / i_base
     # define search func
     chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, t_0]), [tau], theory.total_magnification,
-                                                   100, 0,
                                                    100)
     index = np.where(chi2 == chi_min)
 
@@ -147,8 +146,8 @@ def test_part_c(file_path):
     x = photometry.hjd
     y = photometry.intensity / i_base
     # define search func
-    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, t_0, tau]), [], theory.u_at_single, 100,
-                                                   0, 100)
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, t_0, tau]), [],
+                                                   theory.magnification_with_blending, 100)
     index = np.where(chi2 == chi_min)
 
     print(f"chimin:{chi_min}, index:{index}")
@@ -171,9 +170,8 @@ def test_part_b1(file):
     x = photometry.hjd-t_0+100
     y = photometry.intensity/i_base
     # define search func
-    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, 100]), [tau], theory.total_magnification,
-                                                   30, 0,
-                                                   100)
+    chi2, chi_min, axis = st.search_chi_sqaure_min(x, y, sigma, np.array([u_0, 100]), [tau, 1],
+                                                   theory.magnification_with_blending, 100)
     index = np.where(chi2 == chi_min)
     sig_avg = np.average(sigma)
     chi_max = np.max(chi2)

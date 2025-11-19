@@ -1,6 +1,7 @@
 # This file is for miscellaneous functions that don't fit elsewhere
 import numpy as np
 import scipy
+from microlensing.loc_types import NDFloatArray
 
 
 def prepare_computation_blocks(*parameters):
@@ -71,3 +72,25 @@ def locate_peak_range(intensity, hjd, rel_height=1 / 3):
     pl.plot_polyfit("parabolic fit", pb_time, pb_intensity, degree=2)
     pl.ax.legend()
     pl.save("../output/test_find_peaks.png")
+
+
+def upper_and_lower_param_confidence(chi: NDFloatArray, parameters: NDFloatArray, chi_confidence=3.3):
+    """Expects parameters to be the meshgrid used to create chi"""
+    dim = chi.ndim
+    # Expecting where to give indices that follow the rule
+    indices_below_threshold = np.where(chi <= chi_confidence)
+    min_indices = [np.min(indices) for indices in indices_below_threshold]
+    max_indices = [np.max(indices) for indices in indices_below_threshold]
+
+    # Extracting the value of the min\max index of each dimension in the indices
+    min_coords = np.array([
+        parameters[d][(0,) * d + (min_indices[d],) + (0,) * (dim-d-1)]
+        for d in range(dim)
+    ])
+
+    max_coords = np.array([
+        parameters[d][(0,) * d + (max_indices[d],) + (0,) * (dim-d-1)]
+        for d in range(dim)
+    ])
+
+    return min_coords, max_coords

@@ -4,14 +4,6 @@ from logging import exception
 from .loc_types import NDFloatArray
 import numpy as np
 
-
-def total_magnification(t: float, u0: NDFloatArray, t0: NDFloatArray, tau: NDFloatArray) -> NDFloatArray:
-    """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
-    u = u_at_single(t, u0, t0, tau)
-    a = ((u ** 2) + 2) / (u * (((u ** 2) + 4) ** (1 / 2)))
-    return a
-
-
 def u_at(t: NDFloatArray, u0: float, tau: float, t0: float) -> NDFloatArray:
     """Compute the distance scale at times `t` given `u0`, `t0`, and `tau`"""
     u = ((((t - t0) / tau) ** 2) + u0 ** 2) ** (1 / 2)
@@ -35,19 +27,19 @@ def magnification_with_blending(
         u_0: NDFloatArray,
         t0: NDFloatArray,
         tau: NDFloatArray,
-        f_bl: NDFloatArray,
-        i_star: NDFloatArray
+        f_bl: NDFloatArray
 ) -> NDFloatArray:
     """computes magnification with blending and base brightness at time t. Use for batching over Chi Squared"""
     u = u_at_single(t, u_0, t0, tau)
-    I = i_star * f_bl * u + i_star * (1 - f_bl)
+    mag = magnification_at(u)
+    I = f_bl * mag + (1 - f_bl)
     return I
 
 
 def magnification_at(u: NDFloatArray) -> NDFloatArray:
     """Compute the magnification due to microlensing at distances `u`"""
-    u2 = u ^ 2
-    magnification = (u2 + 2) / (u * (u2 + 4) ^ (1 / 2))
+    u2 = u ** 2
+    magnification = (u2 + 2) / (u * (u2 + 4) ** (1 / 2))
     return magnification
 
 

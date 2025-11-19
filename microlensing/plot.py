@@ -50,12 +50,12 @@ class Plot:
         [0.00, 7.04, 11.6, 12.8, 16.8, 20.1, 27.8], # 6 DoF
     ])
 
-    def plot_heatmap(self, x, y, z, z_label="z", num_levels=15, x_min=None, y_min=None, z_min=None):
+    def plot_heatmap(self, x, y, z, z_label="z", var_num=2, x_min=None, y_min=None, z_min=None):
         # Levels can be used to draw discreet levels based on chi2 confidence levels
         # levels = np.linspace(z.min(), z.max(), num_levels)
         X, Y = np.meshgrid(x, y)
         min = np.min(z)
-        levels = self.CHI2_DIFF_CONF_DOF[2] + min
+        levels = self.CHI2_DIFF_CONF_DOF[var_num] + min
         filled_contours = self.ax.contourf(X, Y, z, levels=levels)
         # custom_norm = colors.Normalize(vmin=min, vmax=min+self.CHI2_DIFF_CONF_DOF[2][-1])
         # self.ax.pcolormesh(z, norm=custom_norm)
