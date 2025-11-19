@@ -125,9 +125,11 @@ def limit_search(chi_limit, func, parameters: NDFloatArray, static_params: NDFlo
                  sigma: NDFloatArray, dof: float,
                  x: NDFloatArray, y: NDFloatArray) -> NDFloatArray:
     limits = np.zeros(shape=(parameters.shape[0], 2))
+    chi_base = chi_squared(x, y, sigma, lambda t: func(t, *parameters, *static_params)) / dof
+    chi_limit = chi_base * 20
     for index, value in np.ndenumerate(parameters):
-        chi = 0
         i = 0
+        chi = chi_base
         param_search = parameters.copy()
         base_step = value * 0.01
         while chi < chi_limit and i < 1000:
@@ -136,7 +138,7 @@ def limit_search(chi_limit, func, parameters: NDFloatArray, static_params: NDFlo
             chi = chi_squared(x, y, sigma, lambda t: func(t, *param_search, *static_params))
             chi = chi / dof
         upperLim = param_search[index]
-        chi = 0
+        chi=chi_base
         i = 0
         param_search = parameters.copy()
         while chi < chi_limit and i < 1000:

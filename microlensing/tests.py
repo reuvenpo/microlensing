@@ -175,24 +175,18 @@ def test_part_b1(file):
                                                    30, 0,
                                                    100)
     index = np.where(chi2 == chi_min)
-
-    sigma = np.full_like(y, 0.065)
-    p = plot.Plot(title="heatmap", x_label="u_0", y_label="t_0 - centered to 100")
-    # p.plot_func(
-    #     label="Visual Diff",
-    #     x=x,
-    #     y=y,
-    #     sigma=sigma,
-    #     func=lambda t: theory.total_magnification(t, u_0, 100, tau))
-    p.plot_func(
-        label="Visual Diff",
-        x=x[50:100],
-        y=y[50:100],
-        sigma=sigma[50:100],
-        func=lambda t: theory.total_magnification(t, axis[0][index[0], 0][0], axis[1][0, index[1]][0], tau))
-    # axis[0][index[0], 0][0], axis[1][0, index[1]][0], t_0))
-    # p.plot_heatmap(x=axis[0], y=axis[1], z=chi2.transpose(), z_label="chi^2", x_min=index[0],
-    #                y_min=index[1], z_min=chi_min)
+    sig_avg = np.average(sigma)
+    chi_max = np.max(chi2)
+    print(np.average(y))
+    print(np.average(sigma))
+    o=sig_avg*chi_min**0.5
+    print(o)
+    print(o/sig_avg)
+    chi2 /= chi_min
+    # print(chi2)
+    p = plot.Plot(title="heatmap", x_label="a_0", y_label="a_1")
+    p.plot_heatmap(x=axis[0], y=axis[1], z=chi2.transpose(), z_label="chi^2", x_min=index[0],
+                   y_min=index[1], z_min=1)
     p.save("../output/shdfgjsgj")
     print(f"chimin:{chi_min}, index:{index}")
     print(f"chi at index:{chi2[index]}")
@@ -203,9 +197,9 @@ if __name__ == '__main__':
     ogle_2024_blg_170 = "../data/blending-1/OGLE-2024-BLG-0170.csv"
 
     # test_bootstrap_parabola()
-    test_data(ogle_2024_blg_170, 16.239, 0.252, 85.801, 2460440.283)
+    # test_data(ogle_2024_blg_170, 16.239, 0.252, 85.801, 2460440.283)
     # test_find_peaks(ogle_2024_blg_170)
     # test_chi2_2d()
     # test_part_b(ogle_2024_blg_170)
     # test_part_c(ogle_2024_blg_170)
-    # test_part_b1(ogle_2024_blg_170)
+    test_part_b1("../data/blending-1/OGLE-2023-BLG-0096.csv")
