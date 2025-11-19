@@ -74,10 +74,12 @@ def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray, iterations: int = 1
     u_0 = theory.extract_u0(a_0)
     u_0_val, u_0_sigma = np.mean(u_0), np.std(u_0)
     a_1_val, a_1_sigma = np.mean(a_1), np.std(a_1)
+    a_0_val = np.mean(a_0)
+    a_2_val = np.mean(a_2)
     a_2 = np.clip(a_2, None, 0)
     tau = theory.extract_tau(u_0, a_2)
     tau_val, tau_sigma = np.nanmean(tau), np.nanstd(tau)
-    return u_0_val, u_0_sigma, tau_val, tau_sigma, a_1_val, a_1_sigma
+    return u_0_val, u_0_sigma, tau_val, tau_sigma, a_1_val, a_1_sigma, a_0_val,a_2_val
 
 
 # End Part A

@@ -66,7 +66,7 @@ class Plot:
 
         self.ax.clabel(line_contours, inline=True, fontsize=8, fmt='%.1f')
         # self.ax.set_aspect('equal')
-        # plt.scatter(x, y, c='k', marker='.', s=10, label='Original Data Points')
+        # plt.scatter(x, y, c='k', marker='.', s=10, label='Original data Points')
         if x_min != None and y_min != None and z_min != None:
             self.ax.plot(x[x_min, 0], y[0, y_min], 'x', markersize=10, color='red')
             self.ax.annotate(text=f"z_min:{z_min}", xy=(x[x_min, 0], y[0, y_min]))
@@ -76,5 +76,5 @@ class Plot:
     def save(self, output_file):
         with catch_warnings():
             filterwarnings("ignore")
-            # self.ax.legend()
+            self.ax.legend()
         self.fig.savefig(output_file)

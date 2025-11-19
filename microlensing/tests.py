@@ -176,22 +176,23 @@ def test_part_b1(file):
                                                    100)
     index = np.where(chi2 == chi_min)
 
-    p = plot.Plot(title="heatmap", x_label="a_0", y_label="a_1")
+    sigma = np.full_like(y, 0.065)
+    p = plot.Plot(title="heatmap", x_label="u_0", y_label="t_0 - centered to 100")
     # p.plot_func(
     #     label="Visual Diff",
     #     x=x,
     #     y=y,
     #     sigma=sigma,
     #     func=lambda t: theory.total_magnification(t, u_0, 100, tau))
-    # p.plot_func(
-    #     label="Visual Diff",
-    #     x=x,
-    #     y=y,
-    #     sigma=sigma,
-    #     func=lambda t: theory.total_magnification(t, axis[0][index[0], 0][0], axis[1][0, index[1]][0], tau))
+    p.plot_func(
+        label="Visual Diff",
+        x=x[50:100],
+        y=y[50:100],
+        sigma=sigma[50:100],
+        func=lambda t: theory.total_magnification(t, axis[0][index[0], 0][0], axis[1][0, index[1]][0], tau))
     # axis[0][index[0], 0][0], axis[1][0, index[1]][0], t_0))
-    p.plot_heatmap(x=axis[0], y=axis[1], z=chi2.transpose(), z_label="chi^2", x_min=index[0],
-                   y_min=index[1], z_min=chi_min)
+    # p.plot_heatmap(x=axis[0], y=axis[1], z=chi2.transpose(), z_label="chi^2", x_min=index[0],
+    #                y_min=index[1], z_min=chi_min)
     p.save("../output/shdfgjsgj")
     print(f"chimin:{chi_min}, index:{index}")
     print(f"chi at index:{chi2[index]}")

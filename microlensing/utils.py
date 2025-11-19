@@ -1,5 +1,6 @@
 # This file is for miscellaneous functions that don't fit elsewhere
 import numpy as np
+import scipy
 
 
 def prepare_computation_blocks(*parameters):
@@ -37,3 +38,36 @@ def split_axis(limits, resolution):
         axis_limit = limits[i]
         axis[i] = np.linspace(axis_limit[0], axis_limit[1], num=resolution)
     return axis
+
+
+def locate_peak_range(intensity, hjd, rel_height=1 / 3):
+    SHOW = (None, None)
+    peaks, props = scipy.signal.find_peaks(intensity, rel_height=rel_height, width=SHOW, height=SHOW,
+                                           prominence=SHOW)
+    # print(peaks)
+    # print(props)
+    max_peak_index = np.argmax(props["peak_heights"])
+    peak_index = peaks[max_peak_index]
+    left_base_index = props["left_bases"][max_peak_index]
+    right_base_index = props["right_bases"][max_peak_index]
+    left_width_index = int(np.floor(props["left_ips"][max_peak_index]))
+    right_width_index = int(np.ceil(props["right_ips"][max_peak_index]))
+
+    # time = hjd[left_base_index:right_base_index + 1]
+    # intensity = intensity[left_base_index:right_base_index + 1]
+    # pb_time = hjd[left_width_index:right_width_index + 1]
+    # pb_intensity = intensity[left_width_index:right_width_index + 1]
+
+    peak_time = hjd[peak_index]
+    return left_width_index, right_width_index + 1, peak_time
+
+    pl = plot.Plot("intensity over time", "time", "intensity")
+    pl.plot("data", time, intensity)
+    pl.plot("peak", photometry.hjd[peak_index], photometry.intensity[peak_index], style="X")
+    pl.plot("left base", photometry.hjd[left_base_index], photometry.intensity[left_base_index], style="X")
+    pl.plot("right base", photometry.hjd[right_base_index], photometry.intensity[right_base_index], style="X")
+    pl.plot("left width", photometry.hjd[left_width_index], photometry.intensity[left_width_index], style="X")
+    pl.plot("right width", photometry.hjd[right_width_index], photometry.intensity[right_width_index], style="X")
+    pl.plot_polyfit("parabolic fit", pb_time, pb_intensity, degree=2)
+    pl.ax.legend()
+    pl.save("../output/test_find_peaks.png")
