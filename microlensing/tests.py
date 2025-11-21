@@ -191,6 +191,28 @@ def test_part_b1(file):
     print(f"u_0:{axis[0][index[0], 0]}, , t_0:{axis[1][0, index[1]]}; u_0,t_0 theo = {u_0:.3} {t_0:.3}")
 
 
+def test_corner_plot():
+    ax = np.linspace(1-50, 100-50, 50, dtype=np.float32)
+    ay = np.linspace(1-50, 100-50, 50, dtype=np.float32)
+    az = np.linspace(1-50, 100-50, 50, dtype=np.float32)
+    aw = np.linspace(1-50, 100-50, 50, dtype=np.float32)
+    x, y, z, w = np.meshgrid(ax, ay, az, aw, copy=False, sparse=True, indexing="ij")
+    # x, y, z = np.meshgrid(ax, ay, az, copy=False, sparse=True, indexing="ij")
+    data = (x**2 + 10*y**2) * z * np.sin(w/10)
+    # data = (x**2 + 10*y**2) * z
+
+    levels = plot.CHI2_DIFF_CONF_DOF[2] * 10
+    figure, axes = plot.heatmap_corner_plot(
+        data,
+        [ax, ay, az, aw],
+        [25, 25, 25, 25],
+        levels,
+        title="An example center plot",
+        axis_names=["x", "y", "z", "w"],
+    )
+    figure.savefig("../output/test_corner.png")
+
+
 if __name__ == '__main__':
     ogle_2024_blg_170 = "../data/blending-1/OGLE-2024-BLG-0170.csv"
 
@@ -200,4 +222,5 @@ if __name__ == '__main__':
     # test_chi2_2d()
     # test_part_b(ogle_2024_blg_170)
     # test_part_c(ogle_2024_blg_170)
-    test_part_b1("../data/blending-1/OGLE-2023-BLG-0096.csv")
+    # test_part_b1("../data/blending-1/OGLE-2023-BLG-0096.csv")
+    test_corner_plot()
