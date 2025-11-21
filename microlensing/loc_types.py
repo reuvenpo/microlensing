@@ -2,4 +2,4 @@
 import numpy as np
 import numpy.typing as npt
 
-NDFloatArray = npt.NDArray[np.float64]
+NDFloatArray = npt.NDArray[np.float32]

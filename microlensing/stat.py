@@ -108,6 +108,8 @@ def search_chi_sqaure_min(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray,
         f = lambda x_i: func(x_i, *meshgrid, *static_params)
         val = chi_squared_aggregate(t, val, sig, f) / dof
         chi2 += val
+        if i%10 == 0:
+            print(i)
     # reduce chi for degrees of freedom
     return chi2, np.min(chi2), meshgrid
 
