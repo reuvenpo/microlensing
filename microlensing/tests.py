@@ -35,7 +35,7 @@ def test_data(file_path, i_mag_base, u_0, tau, t_0):
     print(
         f"u_0: {u_0_val:.3} + {u_0_sigma:.3}; {u_0}\n"
         f"tau: {tau_val:.3} {tau:.3}\n"
-        f"a_1: {a_1:.3} {a_1_sigma:.3} {abs(a_1_sigma / a_1):.2%}%"
+        f"a_1: {a_1:.3} {a_1_sigma:.3} {abs(a_1_sigma / a_1):.2%}"
     )
 
 

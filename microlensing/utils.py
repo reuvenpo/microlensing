@@ -1,4 +1,5 @@
 # This file is for miscellaneous functions that don't fit elsewhere
+from typing import List, Tuple
 import numpy as np
 import scipy
 from microlensing.loc_types import NDFloatArray
@@ -33,24 +34,29 @@ def prepare_computation_blocks(*parameters):
     # )
 
 
-def split_axis(limits, resolution):
-    axis = np.zeros(shape=(limits.shape[0], resolution))
-    for i in range(limits.shape[0]):
-        axis_limit = limits[i]
-        axis[i] = np.linspace(axis_limit[0], axis_limit[1], num=resolution)
+def build_axes(limits: List[Tuple[float, float]], resolution: int):
+    axis = [
+        np.linspace(lower_limit, upper_limit, num=resolution, dtype=np.float32)
+        for lower_limit, upper_limit in limits
+    ]
     return axis
 
 
 def locate_peak_range(intensity, hjd, rel_height=1 / 3):
     SHOW = (None, None)
-    peaks, props = scipy.signal.find_peaks(intensity, rel_height=rel_height, width=SHOW, height=SHOW,
-                                           prominence=SHOW)
+    peaks, props = scipy.signal.find_peaks(
+        intensity,
+        rel_height=rel_height,
+        width=SHOW,
+        height=SHOW,
+        prominence=SHOW
+    )
     # print(peaks)
     # print(props)
     max_peak_index = np.argmax(props["peak_heights"])
     peak_index = peaks[max_peak_index]
-    left_base_index = props["left_bases"][max_peak_index]
-    right_base_index = props["right_bases"][max_peak_index]
+    # left_base_index = props["left_bases"][max_peak_index]
+    # right_base_index = props["right_bases"][max_peak_index]
     left_width_index = int(np.floor(props["left_ips"][max_peak_index]))
     right_width_index = int(np.ceil(props["right_ips"][max_peak_index]))
 
@@ -74,7 +80,8 @@ def locate_peak_range(intensity, hjd, rel_height=1 / 3):
     pl.save("../output/test_find_peaks.png")
 
 
-def upper_and_lower_param_confidence(chi: NDFloatArray, parameters: NDFloatArray, chi_confidence=3.3):
+# 3.3 == CHI2_DIFF_CONF_DOF[2, 1] + 1
+def upper_and_lower_param_confidence(chi: NDFloatArray, parameters: List[NDFloatArray], chi_confidence=3.3):
     """Expects parameters to be the meshgrid used to create chi"""
     dim = chi.ndim
     # Expecting where to give indices that follow the rule

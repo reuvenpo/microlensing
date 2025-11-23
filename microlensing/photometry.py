@@ -32,7 +32,7 @@ class PhotDat:
         """Initializing the data class with path"""
         try:
             # Assuming data is in a structured format like CSV or similar
-            df = np.genfromtxt(path, delimiter=" ")
+            df = np.genfromtxt(path, delimiter=" ", dtype=np.float32)
             hjd = df[..., 0]
             I_mag: NDFloatArray = df[..., 1]
             I_mag_err: NDFloatArray = df[..., 2]

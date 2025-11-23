@@ -1,7 +1,7 @@
 # This file should hold all our statistics functions
 import random
 from collections import abc
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from numpy.ma.core import shape
@@ -12,7 +12,19 @@ from . import utils
 from . import theory
 
 Prediction = abc.Callable[[NDFloatArray], NDFloatArray]
-Prediction_single = abc.Callable[[float, NDFloatArray], NDFloatArray]
+
+
+# The chi squared difference as a function of confidence level and degrees of freedom.
+# Values are given for 68.3%, 90%, 95.4%, 99%, 99.73%, and 99.99%
+CHI2_DIFF_CONF_DOF = np.array([
+    [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],  # filler
+    [0.00, 1.00, 2.71, 4.00, 6.63, 9.00, 15.1],  # 1 DoF
+    [0.00, 2.30, 4.61, 6.17, 9.21, 11.8, 18.4],  # 2 DoF
+    [0.00, 3.53, 6.25, 8.02, 11.3, 14.2, 21.1],  # 3 DoF
+    [0.00, 4.72, 7.78, 9.70, 13.3, 16.3, 23.5],  # 4 DoF
+    [0.00, 5.89, 9.24, 11.3, 15.1, 18.2, 25.7],  # 5 DoF
+    [0.00, 7.04, 11.6, 12.8, 16.8, 20.1, 27.8],  # 6 DoF
+])
 
 
 def chi_squared(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, f: Prediction) -> float:
@@ -87,61 +99,78 @@ def bootstrapping_parabola(x: NDFloatArray, y: NDFloatArray, iterations: int = 1
 """Part B+C"""
 
 
-def search_chi_sqaure_min(x: NDFloatArray, y: NDFloatArray, sigma: NDFloatArray, search_parameters: NDFloatArray,
-                          static_params: List[float], func: Prediction_single, resolution=100):
+def search_chi_sqaure_min(
+    x: NDFloatArray,
+    y: NDFloatArray,
+    sigma: NDFloatArray,
+    search_parameters: List[float],
+    static_params: List[float],
+    func,
+    resolution=100,
+):
     """Limit search"""
-    dof = (x.size - search_parameters.size)
+    dof = x.size - len(search_parameters)
     limits = limit_search(func, search_parameters, static_params, sigma, dof, x, y)
-    axis = utils.split_axis(limits, resolution)
-    # axis = np.zeros(shape=(search_parameters.shape[0], resolution))
+    axes = utils.build_axes(limits, resolution)
+
+    # axes = np.zeros(shape=(search_parameters.shape[0], resolution))
     # for i in range(search_parameters.shape[0]):
-    #     axis[i] = np.linspace(search_parameters[i]*0.5, search_parameters[i]*2, num=resolution)
+    #     axes[i] = np.linspace(search_parameters[i]*0.5, search_parameters[i]*2, num=resolution)
     # meshgrids = utils.prepare_computation_blocks(parameters_axis)
-    meshgrid = np.meshgrid(*axis, indexing='ij', sparse=True)
-    chi2 = np.zeros(shape=(resolution,) * search_parameters.shape[0])
-    for i in range(x.shape[0]):
+
+    meshgrid = np.meshgrid(*axes, indexing='ij', sparse=True, copy=False)
+    chi2 = np.zeros(shape=(resolution,) * len(search_parameters), dtype=np.float32)
+    for i in range(x.size):
         t = x[i]
         val = y[i]
         sig = sigma[i]
         # expecting func to have signature of f(x,a_0,...,a_n, c_0,...,c_n)
         # where a_0 are searched parameters and c are constants not to be searched
         f = lambda x_i: func(x_i, *meshgrid, *static_params)
-        val = chi_squared_aggregate(t, val, sig, f) / dof
-        chi2 += val
-        if i%10 == 0:
-            print(i)
-    # reduce chi for degrees of freedom
-    return chi2, np.min(chi2), meshgrid
+        point_chi2 = chi_squared_aggregate(t, val, sig, f) / dof
+        chi2 += point_chi2
+        if i % 10 == 0:
+            print(f"processed {i}/{x.size} points")
+
+    return chi2, np.unravel_index(np.argmin(chi2), chi2.shape), meshgrid, axes
 
 
-def limit_search(func, parameters: NDFloatArray, static_params: NDFloatArray,
-                 sigma: NDFloatArray, dof: float,
-                 x: NDFloatArray, y: NDFloatArray) -> NDFloatArray:
-    limits = np.zeros(shape=(parameters.shape[0], 2))
-    chi_base = chi_squared(x, y, sigma, lambda t: func(t, *parameters, *static_params)) / dof
-    chi_limit = chi_base * 20
-    for index, value in np.ndenumerate(parameters):
+def limit_search(
+    func,
+    parameters: List[float],
+    static_params: List[float],
+    sigma: NDFloatArray,
+    dof: float,
+    x: NDFloatArray,
+    y: NDFloatArray
+) -> List[Tuple[float, float]]:
+    # limits = np.zeros(shape=(len(parameters), 2))
+    limits = [(0.0, 0.0)] * len(parameters)
+    chi_base = chi_squared(x, y, sigma, lambda x: func(x, *parameters, *static_params)) / dof
+    chi_limit = chi_base * CHI2_DIFF_CONF_DOF[len(parameters), -1] + 1
+    max_steps = 200
+    for index, value in enumerate(parameters):
+        base_step = value * 0.01
+
         i = 0
         chi = chi_base
         param_search = parameters.copy()
-        base_step = value * 0.01
-        while chi < chi_limit and i < 1000:
+        while chi < chi_limit and i < max_steps:
             param_search[index] += base_step
+            chi = chi_squared(x, y, sigma, lambda x: func(x, *param_search, *static_params))
+            chi /= dof
             i += 1
-            chi = chi_squared(x, y, sigma, lambda t: func(t, *param_search, *static_params))
-            chi = chi / dof
-        upperLim = param_search[index]
-        chi=chi_base
-        i = 0
-        param_search = parameters.copy()
-        while chi < chi_limit and i < 1000:
-            param_search[index] -= base_step
-            i += 1
-            chi = chi_squared(x, y, sigma, lambda t: func(t, *param_search, *static_params))
-            chi = chi / dof
-        lowerLim = 0
-        if param_search[index] > 0:
-            lowerLim = param_search[index]
+        upper_limit = param_search[index]
 
-        limits[index] = np.array([[lowerLim, upperLim]])
+        i = 0
+        chi = chi_base
+        param_search = parameters.copy()
+        while chi < chi_limit and i < max_steps:
+            param_search[index] -= base_step
+            chi = chi_squared(x, y, sigma, lambda x: func(x, *param_search, *static_params))
+            chi /= dof
+            i += 1
+        lower_limit = param_search[index] if param_search[index] > 0 else base_step
+
+        limits[index] = (lower_limit, upper_limit)
     return limits
