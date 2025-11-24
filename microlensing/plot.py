@@ -66,9 +66,9 @@ class Plot:
         self.ax.plot()
 
     def save(self, output_file):
-        with catch_warnings():
-            filterwarnings("ignore")
-            self.ax.legend()
+        # with catch_warnings():
+        #     filterwarnings("ignore")
+        #     self.ax.legend()
         self.fig.savefig(output_file)
 
 

@@ -118,10 +118,21 @@ def main(file_path, output_path="./output", part_b=False, part_c=False, u_0=0.0,
             [u_0_val, 100, tau_val,f_bl],
             [],
             theory.magnification_with_blending,
-            48,
+            24,
         )
         chi_min = chi2[index_chi_min]
         # chi2 /= chi_min
+
+        chi2, index_chi_min, meshgrid, axes = search_chi_sqaure_min(
+            time,
+            intensity,
+            intensity_err,
+            [axes[d][index_chi_min[d]] for d in range(len(axes))],
+            [],
+            theory.magnification_with_blending,
+            48,
+        )
+        chi_min = chi2[index_chi_min]
 
         fig, _axes_dict = heatmap_corner_plot(
             data=chi2,
