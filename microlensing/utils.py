@@ -55,8 +55,8 @@ def locate_peak_range(intensity, hjd, rel_height=1 / 3):
     # print(props)
     max_peak_index = np.argmax(props["peak_heights"])
     peak_index = peaks[max_peak_index]
-    # left_base_index = props["left_bases"][max_peak_index]
-    # right_base_index = props["right_bases"][max_peak_index]
+    left_base_index = props["left_bases"][max_peak_index]
+    right_base_index = props["right_bases"][max_peak_index]
     left_width_index = int(np.floor(props["left_ips"][max_peak_index]))
     right_width_index = int(np.ceil(props["right_ips"][max_peak_index]))
 
@@ -66,7 +66,7 @@ def locate_peak_range(intensity, hjd, rel_height=1 / 3):
     # pb_intensity = intensity[left_width_index:right_width_index + 1]
 
     peak_time = hjd[peak_index]
-    return left_width_index, right_width_index + 1, peak_time
+    return left_width_index, right_width_index + 1, peak_time, left_base_index, right_base_index+1
 
     pl = plot.Plot("intensity over time", "time", "intensity")
     pl.plot("data", time, intensity)
@@ -81,7 +81,7 @@ def locate_peak_range(intensity, hjd, rel_height=1 / 3):
 
 
 # 3.3 == CHI2_DIFF_CONF_DOF[2, 1] + 1
-def upper_and_lower_param_confidence(chi: NDFloatArray, parameters: List[NDFloatArray], chi_confidence=3.3):
+def upper_and_lower_param_confidence(chi: NDFloatArray, parameters: List[NDFloatArray], chi_confidence=1 + 2.3):
     """Expects parameters to be the meshgrid used to create chi"""
     dim = chi.ndim
     # Expecting where to give indices that follow the rule

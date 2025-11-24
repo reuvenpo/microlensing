@@ -147,7 +147,7 @@ def limit_search(
     # limits = np.zeros(shape=(len(parameters), 2))
     limits = [(0.0, 0.0)] * len(parameters)
     chi_base = chi_squared(x, y, sigma, lambda x: func(x, *parameters, *static_params)) / dof
-    chi_limit = chi_base * CHI2_DIFF_CONF_DOF[len(parameters), -1] + 1
+    chi_limit = chi_base + CHI2_DIFF_CONF_DOF[len(parameters), -1]
     max_steps = 200
     for index, value in enumerate(parameters):
         base_step = value * 0.01
@@ -160,7 +160,8 @@ def limit_search(
             chi = chi_squared(x, y, sigma, lambda x: func(x, *param_search, *static_params))
             chi /= dof
             i += 1
-        upper_limit = param_search[index]
+        # The index==3 thing is a hack to clamp f_bl
+        upper_limit = param_search[index] if not (index == 3 and param_search[index] >= 1) else 1.0
 
         i = 0
         chi = chi_base

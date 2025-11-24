@@ -140,8 +140,8 @@ def heatmap_corner_plot(
         contour_axes = [data_axes[axis] for axis in combo]
         data_index = tuple(slice(None) if axis in combo else center[axis] for axis in range(dims))
         contour_data = data[data_index]
-        contour_set = axes.contourf(*contour_axes, contour_data, levels=levels)
-        axes.contour(*contour_axes, contour_data, levels=levels, colors="black", linewidths=0.5)
+        contour_set = axes.contourf(*contour_axes, contour_data.T, levels=levels)
+        axes.contour(*contour_axes, contour_data.T, levels=levels, colors="black", linewidths=0.5)
 
         x0, x1 = axes.get_xlim()
         y0, y1 = axes.get_ylim()
